@@ -10,15 +10,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar : true,
-    // asar: {
-    //   //  unpack: '**/node_modules/better-sqlite3/**/*'
-    //    unpack: 'node_modules/better-sqlite3'
-    // },
-    
     extraResource: ['dist', 'bin'],
-  },
-  rebuildConfig: {
-    onlyModules: ['better-sqlite3'],
   },
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
   plugins: [
