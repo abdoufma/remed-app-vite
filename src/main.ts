@@ -1,63 +1,32 @@
 import { app, BrowserWindow } from 'electron';
-import { join } from 'node:path';
+import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import { spawn } from 'node:child_process';
-import { log, logInfo } from './utils';
 
-
-let server : ReturnType<typeof spawn>;
-
-
-function runBundledExecutable() {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  // Build the path to the executable accordingly
-  const binaryPath = join(isDev ? process.cwd() : process.resourcesPath , 'bin/webserver');
-
-  // Spawn the executable process
-  server = spawn(binaryPath, [], {
-    stdio: ['pipe', 'pipe', 'pipe'],
-    env: { ...process.env, PORT: '3000' }
-  });
-
-  server.stdout.on('data', (data) => {
-    logInfo(`[SERVER]: ${data}`);
-  });
-  server.stderr.on('data', (data) => {
-    logInfo(`[SERVER]: ${data}`);
-  });
-
-  server.on('error', (err) => {
-    console.error('Failed to start binary:', err);
-  });
-
-  server.on('close', (code) => {
-    log(`Bundled executable exited with code ${code}`);
-  });
-}
-
-
-// const serverExecutable = platform() === 'win32' ? 'webserver.exe' : 'webserver';
-
-// const serverPath = join(app.isPackaged ? process.resourcesPath :  process.cwd(), 'bin/', serverExecutable); 
-// log('Server Path:', serverPath);
-
+// Import express app after electron app is defined
+let expressApp;
+let database;
 
 if (started) {
   app.quit();
 }
 
 const createWindow = async () => {
-  // log(process.versions);
-  runBundledExecutable();
+  console.log(process.versions.electron);
   try {
+    // Import and initialize database using dynamic import
+    const dbModule = await import('./db');
+    database = dbModule.initDatabase();
     
+    // Then import Express app
+    expressApp = (await import('./server')).default;
+    const port = process.env.PORT || 3000;
+    const server = expressApp.listen(port, () => console.log(`Server running at port ${port}`));
+    
+    // Make sure server closes and database closes when app quits
     app.on('before-quit', () => {
-      log('Closing server and database before exit...');
-      // server.send("bye!");
-      const message = { event: 'kill', payload: {  } };
-      process.stdin.write(JSON.stringify(message) + '\n');
-      server.kill("SIGABRT");
+      console.log('Closing server and database before exit...');
+      server.close();
+      dbModule.closeDatabase();
     });
 
     // Create the browser window.
@@ -65,7 +34,7 @@ const createWindow = async () => {
       width: 1280,
       height: 800,
       webPreferences: {
-        preload: join(__dirname, 'preload.js'),
+        preload: path.join(__dirname, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
       },
@@ -73,10 +42,6 @@ const createWindow = async () => {
 
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
-    // server.send("Window Loaded");
-    // server.stdin.write(JSON.stringify({ command: 'message', payload: { content : "Window Loaded" } }) + '\n');
-    const message = { event: 'init', payload: {  } };
-    server.stdin.write(JSON.stringify(message) + '\n');
   } catch (error) {
     console.error('Error during app initialization:', error);
   }
