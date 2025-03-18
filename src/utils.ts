@@ -8,12 +8,14 @@ const logDir = process.env.NODE_ENV === 'development' ? 'logs' : app.getPath("us
 if (!existsSync(logDir)) mkdirSync(logDir);
 
 
-console.log('PROD Log Dir:', app.getPath("userData"));
+// console.log('PROD Log Dir:', app.getPath("userData"));
 console.log('Log Dir:', logDir);
 
 export const log = async (...args : unknown[]) => {
-    console.log(chalk.whiteBright(args));
-    await appendFile(join(logDir, 'app.log'), args.join(' ') + '\n');
+    console.log(chalk.whiteBright(...args));
+    const timestamp = new Date().toISOString().replace(/\..+/, '');
+    const logPath = join(logDir, 'app.log');
+    await appendFile(logPath,`[${timestamp}] ${args.join(" ")}\n`);
 }
 
 export const logDebug = (...args : unknown[]) => {

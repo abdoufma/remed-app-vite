@@ -56,7 +56,7 @@ const createWindow = async () => {
       log('Closing server and database before exit...');
       // server.send("bye!");
       const message = { event: 'kill', payload: {  } };
-      process.stdin.write(JSON.stringify(message) + '\n');
+      server.stdin.write(JSON.stringify(message) + '\n');
       server.kill("SIGABRT");
     });
 
@@ -73,8 +73,6 @@ const createWindow = async () => {
 
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
-    // server.send("Window Loaded");
-    // server.stdin.write(JSON.stringify({ command: 'message', payload: { content : "Window Loaded" } }) + '\n');
     const message = { event: 'init', payload: {  } };
     server.stdin.write(JSON.stringify(message) + '\n');
   } catch (error) {
@@ -91,7 +89,5 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-
-// app.on('ready', createWindow);
 
 
