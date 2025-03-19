@@ -1,26 +1,31 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
-import { MakerDeb } from '@electron-forge/maker-deb';
-import { MakerRpm } from '@electron-forge/maker-rpm';
+import { MakerDMG } from '@electron-forge/maker-dmg';
 import { VitePlugin } from '@electron-forge/plugin-vite';
+import { PublisherGithub } from '@electron-forge/publisher-github';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
-const config: ForgeConfig = {
+export default  {
   packagerConfig: {
-    // asar : true,
-    asar: {
-      //  unpack: '**/node_modules/better-sqlite3/**/*'
-       unpack: 'node_modules/better-sqlite3'
-    },
-    
-    extraResource: ['dist', 'bin'],
+    name: 'Toodle',
+    icon: 'assets/logo',
+    asar : true,
+    extraResource: ['dist'],
+    osxSign: true,
   },
-  rebuildConfig: {
-    onlyModules: ['better-sqlite3'],
-  },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({})],
+  publishers: [
+    new PublisherGithub({
+      repository: {
+        owner: 'abdoufma',
+        name: 'remed-app-vite',
+      },
+      prerelease: false,
+      draft: false,
+    }),
+  ],
   plugins: [
     new VitePlugin({
       build: [
@@ -54,6 +59,4 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
-};
-
-export default config;
+} as ForgeConfig;

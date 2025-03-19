@@ -1,13 +1,12 @@
 {
   "name": "remed-app-vite",
-  "productName": "remed-app-vite",
-  "version": "1.0.0",
+  "productName": "Remed Desktop",
+  "version": "1.0.2",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
-    "start": "NODE_ENV=development electron-forge start",
+    "start": "electron-forge start",
     "rebuild": "electron-rebuild -f -w better-sqlite3 --target=35.0.0",
-    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -19,6 +18,9 @@
   "author": {
     "name": "Abdou Benbada",
     "email": "gh.abds@gmail.com"
+  },
+  "repository": {
+    "url": "https://github.com/abdoufma/remed-app-vite.git"
   },
   "license": "MIT",
   "devDependencies": {
@@ -32,7 +34,6 @@
     "@electron-forge/plugin-vite": "^7.7.0",
     "@electron/fuses": "^1.8.0",
     "@electron/rebuild": "^3.7.1",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/bun": "^1.2.4",
     "@types/cors": "^2.8.17",
     "@types/electron-squirrel-startup": "^1.0.2",
@@ -49,8 +50,11 @@
     "vite": "^5.4.14"
   },
   "dependencies": {
+    "@electron-forge/maker-dmg": "^7.7.0",
+    "@electron-forge/publisher-github": "^7.7.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "chalk": "^5.4.1",
-    "electron-squirrel-startup": "^1.0.1"
+    "electron-squirrel-startup": "^1.0.1",
+    "update-electron-app": "^3.1.1"
   }
 }
