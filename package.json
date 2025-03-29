@@ -2,7 +2,7 @@
   "name": "remed-app-vite",
   "productName": "Toodle",
   "version": "1.0.2",
-  "description": "My Electron application description",
+  "description": "This is a basic Eelectron app to be used as a building block for Remed Desktop",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
