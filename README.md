@@ -1,0 +1,1 @@
+1- Make sure the `dist/` and `bin/` sirectories exist on the root of the project
