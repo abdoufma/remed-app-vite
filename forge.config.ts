@@ -15,7 +15,7 @@ export default  {
     extraResource: ['dist'],
     osxSign: true,
   },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({})],
+  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({format : 'ULFO'})],
   publishers: [
     new PublisherGithub({
       repository: {

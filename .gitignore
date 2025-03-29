@@ -91,5 +91,6 @@ typings/
 # Electron-Forge
 out/
 dist/
+dist_static/
 bin/*
 Scratchbook.md
