@@ -1,12 +1,14 @@
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import { app } from 'electron';
+// import { app } from 'electron';
 import { DatabaseSync } from 'node:sqlite';
+import { appDir } from './utils';
 
 
 // Determine user data directory (where our database will be stored)
 const getUserDataPath = () => {
-  const userDataPath = app.getPath('userData');
+  // const userDataPath = app.getPath('userData');
+  const userDataPath = appDir
   const dbDir = join(userDataPath, 'database');
 
   // Ensure the directory exists

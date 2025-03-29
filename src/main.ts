@@ -1,26 +1,24 @@
 import { app, BrowserWindow } from 'electron';
-import path from 'node:path';
+import path, { join, resolve } from 'node:path';
 import started from 'electron-squirrel-startup';
 import { updateElectronApp } from 'update-electron-app';
-
-import expressApp from "./server"
-import { initDatabase, closeDatabase } from "./db"
+import { Worker } from 'worker_threads';
 
 updateElectronApp();
 
-let server : ReturnType<typeof expressApp.listen>;
+// let server : ReturnType<typeof expressApp.listen>;
+const PUBLIC_DIR = app.isPackaged ? join(process.resourcesPath, '..', 'dist') : join(__dirname, '../..', 'dist');
+const serverProcess = new Worker(resolve(__dirname, 'server.js'), { env: { PORT: '3000', PUBLIC_DIR } });
+
+
+serverProcess.postMessage("ping");
+serverProcess.postMessage({ action: 'start' });
 
 if (started) app.quit();
 
 const createWindow = async () => {
   console.log(process.versions.electron);
   try {
-    // Initialize database
-    initDatabase();
-    
-    // Then import Express app
-    const port = process.env.PORT || 3000;
-    server = expressApp.listen(port, () => console.log(`Server running at port ${port}`));
   
 
     // Create the browser window.
@@ -31,6 +29,7 @@ const createWindow = async () => {
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         nodeIntegration: false,
+        nodeIntegrationInWorker: true,
         contextIsolation: true,
       },
     });
@@ -56,9 +55,9 @@ app.on('activate', () => {
 
 // Make sure server closes and database closes when app quits
 app.on('before-quit', () => {
-  console.log('Closing server and database before exit...');
-  server.close();
-  closeDatabase();
+  // console.log('Closing server and database before exit...');
+  // server.close();
+  // closeDatabase();
 });
 
 // app.on('ready', createWindow);

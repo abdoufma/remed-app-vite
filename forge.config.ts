@@ -11,11 +11,11 @@ export default  {
   packagerConfig: {
     name: 'Toodle',
     icon: 'assets/logo',
-    asar : true,
+    // asar : true,
     extraResource: ['dist'],
     osxSign: true,
   },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({})],
+  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({format: 'ULFO'})],
   publishers: [
     new PublisherGithub({
       repository: {
@@ -40,6 +40,11 @@ export default  {
           config: 'vite.preload.config.ts',
           target: 'preload',
         },
+        {
+          entry: 'src/server.ts',
+          config: 'vite.main.config.ts',
+          target: 'main',
+        }
       ],
       renderer: [
         {

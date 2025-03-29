@@ -2,26 +2,19 @@ import express from 'express';
 import cors from 'cors';
 import { join } from 'path';
 import { app as electronApp } from 'electron';
-import { deleteTodo, getTodoById, getTodos, saveTodo, updateTodo } from './db';
+import { closeDatabase, deleteTodo, getTodoById, getTodos, initDatabase, saveTodo, updateTodo } from './db';
+import { logServer } from './utils';
+import { parentPort } from 'worker_threads';
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 // Determine if we're in development or production
 const isDev = process.env.NODE_ENV === 'development';
 
 // Get the correct path to the public directory
-let PUBLIC_DIR;
-if (isDev) {
-    PUBLIC_DIR = join(__dirname, '../../dist');
-} else {
-    // In production, use the resource path
-    PUBLIC_DIR = join(electronApp.getAppPath(), '..', 'dist');
-
-    // Alternative for asar packaged apps
-    if (electronApp.isPackaged) {
-        PUBLIC_DIR = join(process.resourcesPath, 'dist');
-    }
-}
+// const PUBLIC_DIR = process.env.PUBLIC_DIR!
+const PUBLIC_DIR = electronApp.isPackaged ? join(process.resourcesPath, '..', 'dist') : join(__dirname, '../..', 'dist');
 
 console.log('Serving static files from:', PUBLIC_DIR);
 
@@ -30,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(PUBLIC_DIR));
 
-app.get("/hello", (req, res) => res.send("<h2>Hello World!</h2>"));
+app.get("/hello", (_, res) => res.send("<h2>Hello World!</h2>"));
 
 
 app.get('/api/todos', (_, res) => {
@@ -85,9 +78,35 @@ app.delete('/api/todos/:id', (req, res) => {
     }
 });
 
+
+initDatabase();
+logServer('Database initialized');
+
+const server = app.listen(port, () => logServer(`Server running on port ${port}`));
+// export default server;
+
+
 // Add a catch-all route for SPA
 app.get('*', (_, res) => {
     res.sendFile(join(PUBLIC_DIR, 'index.html'));
 });
 
-export default app;
+
+server.on('close', () => {
+    logServer('Express Server closed');
+});
+
+parentPort.on('exit', () => {
+    logServer('Server Process exited');
+});
+
+
+parentPort.on('message', (m : any) => {
+    logServer('[SERVER] got message:', m.toString());
+});
+
+process.on("SIGABRT", () => {
+    logServer("SIGABRT received");
+    closeDatabase();
+    server.close();
+});
