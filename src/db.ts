@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { app } from 'electron';
-import { DatabaseSync } from 'node:sqlite';
+import { default as DatabaseSync, type Database } from 'libsql';
 
 
 // Determine user data directory (where our database will be stored)
@@ -17,7 +17,7 @@ const getUserDataPath = () => {
   return join(dbDir, 'app.db');
 };
 
-let db: DatabaseSync | null = null;
+let db: Database | null = null;
 
 export const initDatabase = () => {
   if (db) return db; // Return existing database if already initialized

@@ -15,6 +15,9 @@ export default  {
     extraResource: ['dist'],
     osxSign: true,
   },
+  // rebuildConfig: {
+  //   extraModules: ['libsql'],
+  // },
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({format : 'ULFO'})],
   publishers: [
     new PublisherGithub({
