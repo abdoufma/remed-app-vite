@@ -6,9 +6,6 @@ import { app, dialog, Notification } from "electron";
 import { move, pathExistsSync } from "fs-extra";
 import { spawn } from "child_process";
 
-// const logDir = process.env.NODE_ENV === 'development' ? 'logs' : app.getPath("userData"); // join(process.resourcesPath, 'logs');
-// export const appDir = process.platform === "win32" ? join(homedir(), "AppData/Roaming/", APP_NAME) : join(homedir(),"Library/Application Support/" , APP_NAME);
-// export const appDir = `/Users/abdou/Downloads/`; //TODO: temporary
 let appDir : string;
 
 try {
@@ -26,7 +23,6 @@ export const databaseDir = join(appDir, 'data');
 if (!existsSync(logDir)) mkdirSync(logDir);
 
 
-// console.log('PROD Log Dir:', app.getPath("userData"));
 console.log('PROD Log Dir:', appDir);
 console.log('Log Dir:', logDir);
 

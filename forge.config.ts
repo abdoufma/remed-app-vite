@@ -1,13 +1,12 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
-import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDMG } from '@electron-forge/maker-dmg';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { PublisherGithub } from '@electron-forge/publisher-github';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { resolve } from 'path';
-import { copy, move, pathExistsSync } from 'fs-extra';
+import { move, pathExistsSync } from 'fs-extra';
 import "dotenv/config";
 // import { logDebug } from './src/utils';
 
@@ -28,17 +27,6 @@ async function copyNativeDeps() {
   await move(src, dest, {overwrite: true});
 }
 
-async function CopyPublicFolder() {
-  const outDir = resolve(process.cwd(), 'out/Remed-darwin-arm64');
-  console.log('outDir', outDir);
-  const resourcesDir = process.platform === 'darwin' ? 'Remed.app/Contents/Resources' : 'resources';
-  const src = resolve(outDir, resourcesDir, 'public');
-  const dest = resolve(outDir, resourcesDir, 'backend/public');
-  console.log('Resources/ exists?', pathExistsSync(resolve(outDir, resourcesDir)));
-  console.log('src exists?', pathExistsSync(src));
-  console.debug('Copying', src, 'to', dest);
-  await move(src, dest, {overwrite: true});
-}
 
 async function zipDb(){
   console.log("Zipping the db");
@@ -52,8 +40,8 @@ export default {
     asar: {
       unpack: "**/node_modules/@libsql/**"
     },
-    // ignore: ["db/*.db"],
-    extraResource: ['db/db.7z', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`], //TODO: archive db before packing
+    // TODO: include sqlite3 binary
+    extraResource: ['db/db.7z', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`],
     // osxSign: true,
   },
   hooks: {

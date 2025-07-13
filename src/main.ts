@@ -19,7 +19,9 @@ async function launchServerProcess(){
       logDebug('FRONTEND_OUT_DIR', FRONTEND_OUT_DIR);
       const dbPath = app.isPackaged ? join(databaseDir, 'remed2.db') : join(__dirname, '../..', 'db/remed2.db');
       logDebug('dbPath', dbPath);
-      serverProcess = new Worker(serverPath, { env: { PORT: '3000', NODE_ENV: 'production', FRONTEND_OUT_DIR, DB_PATH: dbPath, LOGS_DIR: logDir } });
+      //TODO: move `UPLOADS_DIR` to `{appDir/uploads}`
+      const config = { PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath, LOGS_DIR: logDir, UPLOADS_DIR : "", FRONTEND_OUT_DIR};
+      serverProcess = new Worker(serverPath, { env: config});
   
       serverProcess?.on('error', (error) => {
         logError('Server Process:', error);
