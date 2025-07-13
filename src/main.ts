@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import started from 'electron-squirrel-startup';
 import { updateElectronApp } from 'update-electron-app';
 import { Worker } from 'worker_threads';
-import { databaseDir, extractDBtoUserDir, logDebug, logError, logInfo } from './utils';
+import { databaseDir, extractDBtoUserDir, logDebug, logDir, logError, logInfo } from './utils';
 
 updateElectronApp();
 
@@ -19,7 +19,7 @@ async function launchServerProcess(){
       logDebug('FRONTEND_OUT_DIR', FRONTEND_OUT_DIR);
       const dbPath = app.isPackaged ? join(databaseDir, 'remed2.db') : join(__dirname, '../..', 'db/remed2.db');
       logDebug('dbPath', dbPath);
-      serverProcess = new Worker(serverPath, { env: { PORT: '3000', NODE_ENV: 'production', FRONTEND_OUT_DIR, DB_PATH: dbPath } });
+      serverProcess = new Worker(serverPath, { env: { PORT: '3000', NODE_ENV: 'production', FRONTEND_OUT_DIR, DB_PATH: dbPath, LOGS_DIR: logDir } });
   
       serverProcess?.on('error', (error) => {
         logError('Server Process:', error);

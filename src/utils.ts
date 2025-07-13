@@ -20,7 +20,7 @@ try {
 // logDebug('appDir', appDir);
 
 export { appDir };
-const logDir = appDir;
+export const logDir = join(appDir,"logs");
 export const databaseDir = join(appDir, 'data');
 
 if (!existsSync(logDir)) mkdirSync(logDir);
@@ -37,45 +37,45 @@ const logLine = async (logPath : string, ...args : unknown[]) => {
 
 export const log = async (...args : unknown[]) => {
   console.log(chalk.whiteBright(args));
-  const logPath = join(appDir, 'app.log');
+  const logPath = join(logDir, 'app.log');
   await logLine(logPath, ...args);
 }
 
 export const logServer = async (...args : unknown[]) => {
   const prefixedArgs = ['[SERVER]', ...args];
   console.log(chalk.whiteBright(...prefixedArgs));
-  const logPath = join(appDir, 'server.log');
+  const logPath = join(logDir, 'server.log');
   logLine(logPath, ...prefixedArgs);
 }
 
 export const logDebug = async (...args : unknown[]) => {
   const prefixedArgs = ['[DEBUG]', ...args];
   console.log(chalk.blueBright(...prefixedArgs));
-  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
+  await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
 export const logError = async (...args : unknown[]) => {
   const prefixedArgs = ['[ERROR]', ...args];
   console.log(chalk.redBright(...prefixedArgs));
-  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
+  await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
 export const logSuccess = async (...args : unknown[]) => {
   const prefixedArgs = ['[SUCCESS]', ...args];
   console.log(chalk.greenBright(...prefixedArgs));
-  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
+  await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
 export const logWarning = async (...args : unknown[]) => {
   const prefixedArgs = ['[WARNING]', ...args];
   console.log(chalk.yellowBright(...prefixedArgs));
-  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
+  await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
 export const logInfo = async (...args : unknown[]) => {
   const prefixedArgs = ['[INFO]', ...args];
   console.log(chalk.cyanBright(...prefixedArgs));
-  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
+  await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
 export async function copyDBtoUserDir() {
@@ -92,9 +92,11 @@ export async function copyDBtoUserDir() {
 }
 
 function extractFile(archivePath: string, destination: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise<number>((resolve, reject) => {
     //TODO: bundle 7z binary with app
-    const sevenZip = spawn("7zz", ["x", archivePath, `-o${destination}`]);
+    const platformFolder = process.platform === "darwin" ? "darwin/7zz" : "win32/7za.exe"
+    const binaryPath = join(process.resourcesPath, "bin", platformFolder);
+    const sevenZip = spawn(binaryPath, ["x", archivePath, `-o${destination}`]);
     
     sevenZip.stdout.on("data", (chunk) => logDebug(chunk))
     sevenZip.stderr.on("data", (chunk) => logError(chunk))

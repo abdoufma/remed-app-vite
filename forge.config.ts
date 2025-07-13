@@ -11,15 +11,17 @@ import { copy, move, pathExistsSync } from 'fs-extra';
 import "dotenv/config";
 // import { logDebug } from './src/utils';
 
+const LIBSQL_FOLDER = process.platform === "darwin" ? "darwin-arm64" : `win32-x64-msvc`
+
 
 async function copyNativeDeps() {
   // TODO: add windows-specific workaround
   // FIXME: find a better to include these
-  const outDir = resolve(process.cwd(), 'out/Remed-darwin-arm64');
+  const outDir = resolve(process.cwd(), `out/Remed-${process.platform}-${process.arch}`);
   console.log('outDir', outDir);
   const resourcesDir = process.platform === 'darwin' ? 'Remed.app/Contents/Resources' : 'resources';
-  const src = resolve(outDir, resourcesDir, 'darwin-arm64');
-  const dest = resolve(outDir, resourcesDir, 'node_modules/@libsql/darwin-arm64');
+  const src = resolve(outDir, resourcesDir, LIBSQL_FOLDER);
+  const dest = resolve(outDir, resourcesDir, `node_modules/@libsql/${LIBSQL_FOLDER}`);
   console.log('Resources/ exists?', pathExistsSync(resolve(outDir, resourcesDir)));
   console.log('src exists?', pathExistsSync(src));
   console.debug('Copying', src, 'to', dest);
@@ -51,8 +53,7 @@ export default {
       unpack: "**/node_modules/@libsql/**"
     },
     // ignore: ["db/*.db"],
-    extraResource: ['db/db.7z', 'backend', 'frontend', 'node_modules/@libsql/darwin-arm64'], //TODO: archive db before packing
-    // extraResource: ['db', 'backend', 'frontend', 'node_modules/@libsql/darwin-arm64', 'node_modules/@libsql/darwin-x64', 'node_modules/@libsql/win32-x64-msvc'],
+    extraResource: ['db/db.7z', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`], //TODO: archive db before packing
     // osxSign: true,
   },
   hooks: {

@@ -97,5 +97,7 @@ Scratchbook.md
 backend/
 frontend/
 *.db
+*.db-shm
+*.db-wal
 *.7z
 **/*/old/
