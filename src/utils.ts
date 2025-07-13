@@ -2,14 +2,27 @@ import chalk from "chalk";
 import { existsSync, mkdirSync } from "fs";
 import { appendFile } from "fs/promises";
 import { join } from "path";
-// import { app } from 'electron';
-import { homedir } from 'os';
-
-const APP_NAME = "remed-app-vite";
+import { app, dialog, Notification } from "electron";
+import { move, pathExistsSync } from "fs-extra";
+import { spawn } from "child_process";
 
 // const logDir = process.env.NODE_ENV === 'development' ? 'logs' : app.getPath("userData"); // join(process.resourcesPath, 'logs');
-export const appDir = process.platform === "win32" ? join(homedir(), "AppData/Roaming/", APP_NAME) : join(homedir(),"Library/Application Support/" , APP_NAME);
+// export const appDir = process.platform === "win32" ? join(homedir(), "AppData/Roaming/", APP_NAME) : join(homedir(),"Library/Application Support/" , APP_NAME);
+// export const appDir = `/Users/abdou/Downloads/`; //TODO: temporary
+let appDir : string;
+
+try {
+  // appDir = join(__dirname, '../..');
+  appDir = app.isPackaged ? app.getPath('userData') : join(__dirname, '../..');
+} catch (error) {
+  dialog.showErrorBox('Error getting app directory:', error instanceof Error ? error.message : 'Unknown error');
+}
+// logDebug('appDir', appDir);
+
+export { appDir };
 const logDir = appDir;
+export const databaseDir = join(appDir, 'data');
+
 if (!existsSync(logDir)) mkdirSync(logDir);
 
 
@@ -17,36 +30,107 @@ if (!existsSync(logDir)) mkdirSync(logDir);
 console.log('PROD Log Dir:', appDir);
 console.log('Log Dir:', logDir);
 
+const logLine = async (logPath : string, ...args : unknown[]) => {
+  const timestamp = new Date().toISOString().replace(/\..+/, '');
+  await appendFile(logPath,`[${timestamp}] ${args.join(" ")}\n`);
+}
+
 export const log = async (...args : unknown[]) => {
-    console.log(chalk.whiteBright(args));
-    const timestamp = new Date().toISOString().replace(/\..+/, '');
-    const logPath = join(appDir, 'app.log');
-    await appendFile(logPath,`[${timestamp}] ${args.join(" ")}\n`);
+  console.log(chalk.whiteBright(args));
+  const logPath = join(appDir, 'app.log');
+  await logLine(logPath, ...args);
 }
 
 export const logServer = async (...args : unknown[]) => {
-  console.log(chalk.whiteBright(args));
-  const timestamp = new Date().toISOString().replace(/\..+/, '');
-  const logPath = join(appDir, 'app.log');
-  await appendFile(logPath,`[${timestamp}] [SERVER] ${args.join(" ")}\n`);
+  const prefixedArgs = ['[SERVER]', ...args];
+  console.log(chalk.whiteBright(...prefixedArgs));
+  const logPath = join(appDir, 'server.log');
+  logLine(logPath, ...prefixedArgs);
 }
 
-export const logDebug = (...args : unknown[]) => {
-  console.log(chalk.blueBright(args));
+export const logDebug = async (...args : unknown[]) => {
+  const prefixedArgs = ['[DEBUG]', ...args];
+  console.log(chalk.blueBright(...prefixedArgs));
+  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
 };
 
-export const logError = (...args : unknown[]) => {
-  console.log(chalk.redBright(args));
+export const logError = async (...args : unknown[]) => {
+  const prefixedArgs = ['[ERROR]', ...args];
+  console.log(chalk.redBright(...prefixedArgs));
+  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
 };
 
-export const logSuccess = (...args : unknown[]) => {
-  console.log(chalk.greenBright(args));
+export const logSuccess = async (...args : unknown[]) => {
+  const prefixedArgs = ['[SUCCESS]', ...args];
+  console.log(chalk.greenBright(...prefixedArgs));
+  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
 };
 
-export const logWarning = (...args : unknown[]) => {
-  console.log(chalk.yellowBright(args));
+export const logWarning = async (...args : unknown[]) => {
+  const prefixedArgs = ['[WARNING]', ...args];
+  console.log(chalk.yellowBright(...prefixedArgs));
+  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
 };
 
-export const logInfo = (...args : unknown[]) => {
-  console.log(chalk.cyanBright(args));
+export const logInfo = async (...args : unknown[]) => {
+  const prefixedArgs = ['[INFO]', ...args];
+  console.log(chalk.cyanBright(...prefixedArgs));
+  await logLine(join(appDir, 'app.log'), ...prefixedArgs);
 };
+
+export async function copyDBtoUserDir() {
+  if (!pathExistsSync(databaseDir)) {
+    const dbDir = join(process.resourcesPath, 'db');
+
+    if (pathExistsSync(dbDir)) {
+      logInfo('Copying bundled data to', databaseDir);
+      await move(dbDir, databaseDir, {});
+    } else {
+      logWarning('Bundled data not found at', dbDir);
+    }
+  }
+}
+
+function extractFile(archivePath: string, destination: string) {
+  return new Promise((resolve, reject) => {
+    //TODO: bundle 7z binary with app
+    const sevenZip = spawn("7zz", ["x", archivePath, `-o${destination}`]);
+    
+    sevenZip.stdout.on("data", (chunk) => logDebug(chunk))
+    sevenZip.stderr.on("data", (chunk) => logError(chunk))
+
+    sevenZip.on("close", (code) => {
+      if (code === 0) {
+        logInfo("Extraction successful!");
+        resolve(code);
+      } else {
+        reject(new Error(`sevenZip exited with code ${code}`));
+      }
+    });
+  });
+}
+
+export async function extractDBtoUserDir() {
+  if (!pathExistsSync(databaseDir)) {
+    const dbArchivePath = join(process.resourcesPath, 'db.7z');
+
+    if (pathExistsSync(dbArchivePath)) {
+      logInfo('Extracting base db to', databaseDir);
+      const start = performance.now();
+      await extractFile(dbArchivePath, databaseDir);
+      logDebug("Extracted in", (performance.now() - start).toFixed(2), "ms");
+    } else {
+      logWarning('Database Archive not found at', dbArchivePath);
+    }
+  }
+}
+
+export function showNotification(title : string, body: string) {
+  if (Notification.isSupported()) {
+    new Notification({
+      title,
+      body,
+      silent: true
+    }).show();
+  }
+}

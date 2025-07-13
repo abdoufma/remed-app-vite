@@ -94,3 +94,8 @@ dist/
 dist*
 bin/*
 Scratchbook.md
+backend/
+frontend/
+*.db
+*.7z
+**/*/old/

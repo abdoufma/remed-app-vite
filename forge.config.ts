@@ -6,16 +6,72 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 import { PublisherGithub } from '@electron-forge/publisher-github';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import { resolve } from 'path';
+import { copy, move, pathExistsSync } from 'fs-extra';
+import "dotenv/config";
+// import { logDebug } from './src/utils';
 
-export default  {
+
+async function copyNativeDeps() {
+  // TODO: add windows-specific workaround
+  // FIXME: find a better to include these
+  const outDir = resolve(process.cwd(), 'out/Remed-darwin-arm64');
+  console.log('outDir', outDir);
+  const resourcesDir = process.platform === 'darwin' ? 'Remed.app/Contents/Resources' : 'resources';
+  const src = resolve(outDir, resourcesDir, 'darwin-arm64');
+  const dest = resolve(outDir, resourcesDir, 'node_modules/@libsql/darwin-arm64');
+  console.log('Resources/ exists?', pathExistsSync(resolve(outDir, resourcesDir)));
+  console.log('src exists?', pathExistsSync(src));
+  console.debug('Copying', src, 'to', dest);
+  await move(src, dest, {overwrite: true});
+}
+
+async function CopyPublicFolder() {
+  const outDir = resolve(process.cwd(), 'out/Remed-darwin-arm64');
+  console.log('outDir', outDir);
+  const resourcesDir = process.platform === 'darwin' ? 'Remed.app/Contents/Resources' : 'resources';
+  const src = resolve(outDir, resourcesDir, 'public');
+  const dest = resolve(outDir, resourcesDir, 'backend/public');
+  console.log('Resources/ exists?', pathExistsSync(resolve(outDir, resourcesDir)));
+  console.log('src exists?', pathExistsSync(src));
+  console.debug('Copying', src, 'to', dest);
+  await move(src, dest, {overwrite: true});
+}
+
+async function zipDb(){
+  console.log("Zipping the db");
+}
+
+export default {
   packagerConfig: {
-    name: 'Toodle',
+    name: 'Remed',
     icon: 'assets/logo',
     // asar : true,
-    extraResource: ['dist'],
-    osxSign: true,
+    asar: {
+      unpack: "**/node_modules/@libsql/**"
+    },
+    // ignore: ["db/*.db"],
+    extraResource: ['db/db.7z', 'backend', 'frontend', 'node_modules/@libsql/darwin-arm64'], //TODO: archive db before packing
+    // extraResource: ['db', 'backend', 'frontend', 'node_modules/@libsql/darwin-arm64', 'node_modules/@libsql/darwin-x64', 'node_modules/@libsql/win32-x64-msvc'],
+    // osxSign: true,
   },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDMG({format: 'ULFO'})],
+  hooks: {
+
+    async postPackage({ }) {
+      
+      try {
+        await copyNativeDeps();
+        // await CopyPublicFolder();
+      } catch (error) {
+        console.error('Error copying files:', error);
+      }
+    }
+  },
+  makers: [
+    new MakerSquirrel({}),
+    // new MakerZIP({}, ['darwin']),
+    new MakerDMG({ format: 'ULFO' }),
+  ],
   publishers: [
     new PublisherGithub({
       repository: {
