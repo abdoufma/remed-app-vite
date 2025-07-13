@@ -13,8 +13,6 @@ import "dotenv/config";
 
 const LIBSQL_FOLDER = process.platform === "darwin" ? "darwin-arm64" : `win32-x64-msvc`
 
-const LIBSQL_FOLDER = process.platform === "darwin" ? "darwin-arm64" : `win32-x64-msvc`
-
 
 async function copyNativeDeps() {
   // TODO: add windows-specific workaround
