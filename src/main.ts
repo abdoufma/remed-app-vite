@@ -1,23 +1,28 @@
 import { app, BrowserWindow, dialog } from 'electron';
-import { appendFile } from 'fs/promises';
 import { join, resolve } from 'node:path';
 import started from 'electron-squirrel-startup';
 import { updateElectronApp } from 'update-electron-app';
 import { Worker } from 'worker_threads';
-import { databaseDir, extractDBtoUserDir, logDebug, logDir, logError, logInfo } from './utils';
+import { dbPath, extractDBtoUserDir, logDebug, logDir, logError, logInfo } from './utils';
 
 updateElectronApp();
 
 let serverProcess : Worker | null = null;
 
+let mainWindow : BrowserWindow | null = null;
+
+let progressWindow : BrowserWindow | null = null;
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function launchServerProcess(){
   return new Promise<void>((res, reject) => {
     try {
-      const serverPath = app.isPackaged ? resolve(join(process.resourcesPath, 'backend', 'app.js')) : resolve(__dirname, '..', '..', 'backend', 'app.js');
+      const serverPath = app.isPackaged ? resolve(join(process.resourcesPath, 'backend', 'app.js')) : resolve(app.getAppPath(), 'backend', 'app.js');
       logDebug('serverPath', serverPath);
       const FRONTEND_OUT_DIR = app.isPackaged ? join(process.resourcesPath, 'frontend') : join(__dirname, '../..', 'frontend');
       logDebug('FRONTEND_OUT_DIR', FRONTEND_OUT_DIR);
-      const dbPath = app.isPackaged ? join(databaseDir, 'remed2.db') : join(__dirname, '../..', 'db/remed2.db');
+      
       logDebug('dbPath', dbPath);
       //TODO: move `UPLOADS_DIR` to `{appDir/uploads}`
       const config = { PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath, LOGS_DIR: logDir, UPLOADS_DIR : "", FRONTEND_OUT_DIR};
@@ -50,6 +55,34 @@ async function launchServerProcess(){
 // serverProcess.postMessage("ping");
 // serverProcess.postMessage({ action: 'start' });
 
+function createProgressWindow() {
+  progressWindow = new BrowserWindow({
+    width: 400,
+    height: 200,
+    modal: true,
+    parent: mainWindow, // your main window
+    show: false,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+  const progressFile = app.isPackaged  ? join(process.resourcesPath, 'progress.html') : join(app.getAppPath(), 'progress.html');
+  progressWindow.loadFile(progressFile);
+  progressWindow.once('ready-to-show', () => {
+    progressWindow.show();
+  });
+}
+
+
+function updateProgress(percentage : number, message?: string) {
+  mainWindow.setProgressBar(percentage/100);
+  if (progressWindow) {
+    progressWindow.webContents.send('update-progress', { percentage, message });
+  }
+}
+
 
 if (started) app.quit();
 
@@ -58,7 +91,7 @@ const createWindow = async () => {
   try {
 
     // Create the browser window.
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
       title: app.name + ' ' + app.getVersion(),
       width: 1280,
       height: 800,
@@ -73,17 +106,24 @@ const createWindow = async () => {
     
     
     mainWindow.on('page-title-updated', (e) => e.preventDefault());
-  
+    createProgressWindow();
     
-    await mainWindow.loadURL('https://google.com');
-    mainWindow.webContents.openDevTools();
-    mainWindow.setProgressBar(0.25);
+    // await mainWindow.loadURL('https://google.com');
+    // mainWindow.webContents.openDevTools();
+    updateProgress(10, "extracting database");
     await extractDBtoUserDir();
-    mainWindow.setProgressBar(0.75);
+    // await wait(500); 
+    updateProgress(50, "launching server process");
+    // await wait(1000); 
     await launchServerProcess();
-    mainWindow.setProgressBar(1);
+    updateProgress(75, "Launching Remed")
     await mainWindow.loadURL('http://localhost:3000');
-    mainWindow.setProgressBar(-1);
+    // await wait(500); 
+    updateProgress(100)
+    // await wait(1000); 
+    // updateProgress(100);
+    progressWindow.close();
+    progressWindow = null;
   } catch (error) {
     await logError('Error during app initialization:', error);
     dialog.showErrorBox(`App Initialisation Error`, (error as Error).message);

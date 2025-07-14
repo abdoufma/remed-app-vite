@@ -18,7 +18,10 @@ try {
 
 export { appDir };
 export const logDir = join(appDir,"logs");
-export const databaseDir = join(appDir, 'data');
+export const databaseDir = join(appDir,  process.env.NODE_ENV === "development" ? "db" : 'data');
+export const dbPath = app.isPackaged ? join(databaseDir, 'remed2.db') : join(__dirname, '../..', 'db/remed2.db');
+// export const resourcesPath = app.isPackaged ? process.resourcesPath : join(__dirname, '../..', 'resources');
+export const resourcesPath = process.env.NODE_ENV === "development" ? join(app.getAppPath()) : process.resourcesPath
 
 if (!existsSync(logDir)) mkdirSync(logDir);
 
@@ -76,7 +79,7 @@ export const logInfo = async (...args : unknown[]) => {
 
 export async function copyDBtoUserDir() {
   if (!pathExistsSync(databaseDir)) {
-    const dbDir = join(process.resourcesPath, 'db');
+    const dbDir = join(resourcesPath, 'db');
 
     if (pathExistsSync(dbDir)) {
       logInfo('Copying bundled data to', databaseDir);
@@ -91,7 +94,7 @@ function extractFile(archivePath: string, destination: string) {
   return new Promise<number>((resolve, reject) => {
     //TODO: bundle 7z binary with app
     const platformFolder = process.platform === "darwin" ? "darwin/7zz" : "win32/7za.exe"
-    const binaryPath = join(process.resourcesPath, "bin", platformFolder);
+    const binaryPath = join(resourcesPath, "bin", platformFolder);
     const sevenZip = spawn(binaryPath, ["x", archivePath, `-o${destination}`]);
     
     sevenZip.stdout.on("data", (chunk) => logDebug(chunk))
@@ -109,8 +112,8 @@ function extractFile(archivePath: string, destination: string) {
 }
 
 export async function extractDBtoUserDir() {
-  if (!pathExistsSync(databaseDir)) {
-    const dbArchivePath = join(process.resourcesPath, 'db.7z');
+  if (!pathExistsSync(dbPath)) {
+    const dbArchivePath = join(resourcesPath, "db", 'db.7z');
 
     if (pathExistsSync(dbArchivePath)) {
       logInfo('Extracting base db to', databaseDir);
@@ -120,7 +123,7 @@ export async function extractDBtoUserDir() {
     } else {
       logWarning('Database Archive not found at', dbArchivePath);
     }
-  }
+  }else logInfo('Database path:', dbPath, "exists. Skipping extraction.");
 }
 
 export function showNotification(title : string, body: string) {
