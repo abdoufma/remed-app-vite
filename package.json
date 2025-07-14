@@ -2,7 +2,7 @@
   "name": "remed-app-vite",
   "productName": "Remed",
   "version": "1.0.2",
-  "description": "Remed is the leading Healthcare Management System in Algeria.",
+  "description": "Votre partenaire santé.", 
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "author": {
-    "name": "Abdou Benbada",
+    "name": "SARL Devlog",
     "email": "gh.abds@gmail.com"
   },
   "repository": {
