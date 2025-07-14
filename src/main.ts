@@ -25,7 +25,9 @@ async function launchServerProcess(){
       
       logDebug('dbPath', dbPath);
       //TODO: move `UPLOADS_DIR` to `{appDir/uploads}`
-      const config = { PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath, LOGS_DIR: logDir, UPLOADS_DIR : "", FRONTEND_OUT_DIR};
+      const UPLOADS_DIR = app.isPackaged ? join(app.getPath('userData'), 'uploads/') :  resolve(app.getAppPath(), 'backend', 'public/uploads/');
+      logDebug('UPLOADS_DIR', UPLOADS_DIR);
+      const config = { PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath, LOGS_DIR: logDir, UPLOADS_DIR, FRONTEND_OUT_DIR};
       serverProcess = new Worker(serverPath, { env: config});
   
       serverProcess?.on('error', (error) => {
@@ -78,6 +80,7 @@ function createProgressWindow() {
 
 function updateProgress(percentage : number, message?: string) {
   mainWindow.setProgressBar(percentage/100);
+  if (percentage >= 100) setTimeout(() => mainWindow.setProgressBar(-1), 500);
   if (progressWindow) {
     progressWindow.webContents.send('update-progress', { percentage, message });
   }
