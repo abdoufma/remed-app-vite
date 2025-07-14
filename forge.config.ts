@@ -56,7 +56,7 @@ export default {
     }
   },
   makers: [
-    new MakerSquirrel({authors : "SARL DEVLOG"}),
+    new MakerSquirrel({authors : "SARL DEVLOG", setupIcon : "assets/logo.ico"}),
     // new MakerZIP({}, ['darwin']),
     new MakerDMG({ format: 'ULFO' }),
   ],
