@@ -45,7 +45,6 @@ export default {
     // osxSign: true,
   },
   hooks: {
-
     async postPackage() {
       
       try {
@@ -57,7 +56,7 @@ export default {
     }
   },
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({authors : "SARL DEVLOG"}),
     // new MakerZIP({}, ['darwin']),
     new MakerDMG({ format: 'ULFO' }),
   ],
