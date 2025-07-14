@@ -56,7 +56,7 @@ export default {
     }
   },
   makers: [
-    new MakerSquirrel({authors : "SARL DEVLOG", setupIcon : "assets/logo.ico"}),
+    new MakerSquirrel({name: "Remed", authors : "SARL DEVLOG", setupIcon : "assets/logo.ico", iconUrl : "https://raw.githubusercontent.com/abdoufma/remed-app-vite/refs/heads/with-workers/assets/logo.ico"}),
     // new MakerZIP({}, ['darwin']),
     new MakerDMG({ format: 'ULFO' }),
   ],
