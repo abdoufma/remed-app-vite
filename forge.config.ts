@@ -41,7 +41,7 @@ export default {
       unpack: "**/node_modules/@libsql/**"
     },
     // TODO: include sqlite3 binary
-    extraResource: ['progress.html', 'db', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`],
+    extraResource: ['progress.html', 'data', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`],
     // osxSign: true,
   },
   hooks: {

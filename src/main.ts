@@ -13,7 +13,7 @@ let mainWindow : BrowserWindow | null = null;
 
 let progressWindow : BrowserWindow | null = null;
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 async function launchServerProcess(){
   return new Promise<void>((res, reject) => {
@@ -23,11 +23,12 @@ async function launchServerProcess(){
       const FRONTEND_OUT_DIR = app.isPackaged ? join(process.resourcesPath, 'frontend') : join(__dirname, '../..', 'frontend');
       logDebug('FRONTEND_OUT_DIR', FRONTEND_OUT_DIR);
       
-      logDebug('dbPath', dbPath);
+      logDebug('DB_PATH', dbPath);
       //TODO: move `UPLOADS_DIR` to `{appDir/uploads}`
       const UPLOADS_DIR = app.isPackaged ? join(app.getPath('userData'), 'uploads/') :  resolve(app.getAppPath(), 'backend', 'public/uploads/');
       logDebug('UPLOADS_DIR', UPLOADS_DIR);
-      const config = { PORT: '3000', NODE_ENV: 'production', DB_PATH: dbPath, LOGS_DIR: logDir, UPLOADS_DIR, FRONTEND_OUT_DIR};
+      const SQLITE_DB_BACKUPS_DIR = __dirname //TODO: change this later
+      const config = { PORT: '3000', NODE_ENV: 'production', SQLITE_DB_PATH: dbPath, SQLITE_DB_BACKUPS_DIR, LOGS_DIR: logDir, UPLOADS_DIR, FRONTEND_OUT_DIR};
       serverProcess = new Worker(serverPath, { env: config});
   
       serverProcess?.on('error', (error) => {

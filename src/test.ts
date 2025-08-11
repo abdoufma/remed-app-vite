@@ -39,4 +39,4 @@ export async function extractDBtoUserDir() {
   }
 }
 
-await extractDBtoUserDir();
+// await extractDBtoUserDir();

@@ -17,9 +17,9 @@ try {
 // logDebug('appDir', appDir);
 
 export { appDir };
-export const logDir = join(appDir,"logs");
-export const databaseDir = join(appDir,  process.env.NODE_ENV === "development" ? "db" : 'data');
-export const dbPath = app.isPackaged ? join(databaseDir, 'remed2.db') : join(__dirname, '../..', 'db/remed2.db');
+export const logDir = join(appDir, 'logs');
+export const databaseDir = join(appDir,  'data');
+export const dbPath = join(databaseDir, 'remed.db');
 // export const resourcesPath = app.isPackaged ? process.resourcesPath : join(__dirname, '../..', 'resources');
 export const resourcesPath = process.env.NODE_ENV === "development" ? join(app.getAppPath()) : process.resourcesPath
 
@@ -77,19 +77,6 @@ export const logInfo = async (...args : unknown[]) => {
   await logLine(join(logDir, 'app.log'), ...prefixedArgs);
 };
 
-export async function copyDBtoUserDir() {
-  if (!pathExistsSync(databaseDir)) {
-    const dbDir = join(resourcesPath, 'db');
-
-    if (pathExistsSync(dbDir)) {
-      logInfo('Copying bundled data to', databaseDir);
-      await move(dbDir, databaseDir, {});
-    } else {
-      logWarning('Bundled data not found at', dbDir);
-    }
-  }
-}
-
 function extractFile(archivePath: string, destination: string) {
   return new Promise<number>((resolve, reject) => {
     //TODO: bundle 7z binary with app
@@ -112,8 +99,9 @@ function extractFile(archivePath: string, destination: string) {
 }
 
 export async function extractDBtoUserDir() {
+  logInfo(dbPath,pathExistsSync(dbPath) ? "exists" : "does not exist");
   if (!pathExistsSync(dbPath)) {
-    const dbArchivePath = join(resourcesPath, "db", 'db.7z');
+    const dbArchivePath = join(resourcesPath, "data", 'db.7z');
 
     if (pathExistsSync(dbArchivePath)) {
       logInfo('Extracting base db to', databaseDir);
