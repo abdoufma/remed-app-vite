@@ -94,3 +94,9 @@ dist/*
 dist_static/*
 bin/*
 Scratchbook.md
+
+
+backend/
+frontend/
+data/
+assets/old/
