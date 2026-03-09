@@ -1,7 +1,7 @@
 {
   "name": "remed-app-vite",
   "productName": "Remed",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Solution de gestion de cabinets médicaux.",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -12,6 +12,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "clean": "rm -rf out .vite",
+    "clean:back": "rm -rf backend/*",
+    "clean:front": "rm -rf frontend/*",
     "clean:deep": "rm -rf out .vite node_modules"
   },
   "keywords": [],
@@ -47,7 +49,7 @@
     "eslint-plugin-import": "^2.31.0",
     "express": "^4.21.2",
     "ts-node": "^10.9.2",
-    "typescript": "~4.5.4",
+    "typescript": "~4.5.5",
     "vite": "^5.4.14"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import cors from 'cors';
 import { join } from 'path';
 import { app as electronApp } from 'electron';
 import { closeDatabase, deleteTodo, getTodoById, getTodos, initDatabase, saveTodo, updateTodo } from './db';
-import { logServer } from './utils';
+import { logServer } from '../utils';
 import { parentPort } from 'worker_threads';
 
 const app = express();

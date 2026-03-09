@@ -10,10 +10,12 @@ function createLicense(name, expiryMonth, freeItems, licenseType) {
   nameBytes.write(name, 0, 'utf8');
   const expiryBuf = Buffer.alloc(2);
   expiryBuf.writeUInt16BE(expiryMonth);
-  const freeItemsByte = Buffer.from([freeItems]);
+  // const freeItemsByte = Buffer.from([freeItems]);
+  const freeItemsBuf = Buffer.alloc(1);
+  freeItemsBuf.writeUInt8(freeItems);
   const licenseTypeByte = Buffer.from([licenseType]);
 
-  const data = Buffer.concat([nameBytes, expiryBuf, freeItemsByte, licenseTypeByte]);
+  const data = Buffer.concat([nameBytes, expiryBuf, freeItemsBuf, licenseTypeByte]);
   if (data.length !== 20) throw new Error('Wrong packed size');
 
   const iv = Buffer.alloc(16, 0); // fixed IV just to keep things reproducible
@@ -44,13 +46,13 @@ function decodeLicense(licenseStr) {
 }
 
 // demo
-const license = createLicense('BenbadaAbdesslam', 2508, 255, 2);
+const license = createLicense('BenbadaAbdesslam', 2508, 100, 2);
 console.log('\nGenerated license:', license, '(length:', license.length, ')');
 decodeLicense(license);
 
 
-const license2 = createLicense('BenbadaAbdeslam', 2508, 258, 2);
+const license2 = createLicense('BenbadaAbdesslam', 2508, 255, 2);
 console.log('\nGenerated license:', license2, '(length:', license2.length, ')');
 decodeLicense(license2);
 
-console.log("Licenses", license === license2 ? "match" : "do NOT match");
+console.log("Licenses", license === license2 ? "match ✅" : "do NOT match ❌");

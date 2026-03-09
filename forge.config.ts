@@ -41,7 +41,7 @@ export default {
       unpack: "**/node_modules/@libsql/**"
     },
     // TODO: include sqlite3 binary
-    extraResource: ['progress.html', 'data', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`],
+    extraResource: ['progress.html', 'data/', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`, ],
     // osxSign: true,
   },
   hooks: {
@@ -84,11 +84,11 @@ export default {
           config: 'vite.preload.config.ts',
           target: 'preload',
         },
-        {
-          entry: 'src/server.ts',
-          config: 'vite.main.config.ts',
-          target: 'main',
-        }
+        // {
+        //   entry: 'src/server.ts',
+        //   config: 'vite.main.config.ts',
+        //   target: 'main',
+        // }
       ],
       renderer: [
         {

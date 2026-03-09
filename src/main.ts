@@ -25,11 +25,11 @@ async function launchServerProcess(){
       
       logDebug('DB_PATH', dbPath);
       //TODO: move `UPLOADS_DIR` to `{appDir/uploads}`
-      const UPLOADS_DIR = app.isPackaged ? join(app.getPath('userData'), 'uploads/') :  resolve(app.getAppPath(), 'backend', 'public/uploads/');
+      const UPLOADS_DIR = app.isPackaged ? join(app.getPath('userData'), 'uploads/') : join(app.getAppPath(), 'backend', 'public/uploads/') ;
       logDebug('UPLOADS_DIR', UPLOADS_DIR);
       const SQLITE_DB_BACKUPS_DIR = __dirname //TODO: change this later
-      const config = { PORT: '3000', NODE_ENV: 'production', SQLITE_DB_PATH: dbPath, SQLITE_DB_BACKUPS_DIR, LOGS_DIR: logDir, UPLOADS_DIR, FRONTEND_OUT_DIR};
-      serverProcess = new Worker(serverPath, { env: config});
+      const env = { PORT: '3000', NODE_ENV: 'production', SQLITE_DB_PATH: dbPath, SQLITE_DB_BACKUPS_DIR, LOGS_DIR: logDir, UPLOADS_DIR, FRONTEND_OUT_DIR};
+      serverProcess = new Worker(serverPath, { env });
   
       serverProcess?.on('error', (error) => {
         logError('Server Process:', error);
@@ -40,16 +40,18 @@ async function launchServerProcess(){
       });
   
       serverProcess?.on('message', async (message) => {
-        if (message &&message.type === 'server-started') {
-          await logInfo("Server process started successfully");
+        if (message && message.type === 'server-started') {
+          //TODO: 1- send the server-started event from the server
+          await logInfo("=*=*=*=*=*= Server process started successfully =*=*=*=*=*=");
+          await mainWindow.loadURL('http://localhost:3000'); 
           res()
         }
       });
   
     } catch (error) {
-      logError('Error loading server process:', error);
-      dialog.showErrorBox('Error loading server process', error instanceof Error ? error.message : 'Unknown error');
-      reject();
+      const errMessage = 'Error loading server process' + '\n' + (error instanceof Error) ? error.message : 'Unknown error'
+      logError(errMessage);
+      reject(errMessage);
     }
   });
 }
@@ -73,9 +75,7 @@ function createProgressWindow() {
   });
   const progressFile = app.isPackaged  ? join(process.resourcesPath, 'progress.html') : join(app.getAppPath(), 'progress.html');
   progressWindow.loadFile(progressFile);
-  progressWindow.once('ready-to-show', () => {
-    progressWindow.show();
-  });
+  progressWindow.once('ready-to-show', () => progressWindow.show());
 }
 
 
@@ -120,14 +120,11 @@ const createWindow = async () => {
     updateProgress(50, "launching server process");
     // await wait(1000); 
     await launchServerProcess();
-    updateProgress(75, "Launching Remed")
-    await mainWindow.loadURL('http://localhost:3000');
-    // await wait(500); 
-    updateProgress(100)
-    // await wait(1000); 
-    // updateProgress(100);
+    // updateProgress(75)
+    updateProgress(100, "Launching Remed");
     progressWindow.close();
     progressWindow = null;
+    
   } catch (error) {
     await logError('Error during app initialization:', error);
     dialog.showErrorBox(`App Initialisation Error`, (error as Error).message);

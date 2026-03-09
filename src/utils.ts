@@ -92,7 +92,7 @@ function extractFile(archivePath: string, destination: string) {
         logInfo("Extraction successful!");
         resolve(code);
       } else {
-        reject(new Error(`sevenZip exited with code ${code}`));
+        reject(new Error(`7z exited with code ${code}`));
       }
     });
   });
