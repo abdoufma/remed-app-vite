@@ -94,7 +94,10 @@ dist/
 dist*
 bin/*
 Scratchbook.md
-backend/
+backend/*
+!backend/package.json
+!backend/package-lock.json
+.packaging/
 frontend/
 *.db
 *.db-shm

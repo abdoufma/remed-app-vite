@@ -5,55 +5,37 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 import { PublisherGithub } from '@electron-forge/publisher-github';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
-import { resolve } from 'path';
-import { move, pathExistsSync } from 'fs-extra';
+import { join, resolve } from 'path';
+import { copy, emptyDir, pathExists } from 'fs-extra';
+import { execFileSync } from 'child_process';
 import "dotenv/config";
-// import { logDebug } from './src/utils';
 
-const LIBSQL_FOLDER = process.platform === "darwin" ? "darwin-arm64" : `win32-x64-msvc`
-
-
-async function copyNativeDeps() {
-  // TODO: add windows-specific workaround
-  // FIXME: find a better to include these
-  const outDir = resolve(process.cwd(), `out/Remed-${process.platform}-${process.arch}`);
-  console.log('outDir', outDir);
-  const resourcesDir = process.platform === 'darwin' ? 'Remed.app/Contents/Resources' : 'resources';
-  const src = resolve(outDir, resourcesDir, LIBSQL_FOLDER);
-  const dest = resolve(outDir, resourcesDir, `node_modules/@libsql/${LIBSQL_FOLDER}`);
-  console.log('Resources/ exists?', pathExistsSync(resolve(outDir, resourcesDir)));
-  console.log('src exists?', pathExistsSync(src));
-  console.debug('Copying', src, 'to', dest);
-  await move(src, dest, {overwrite: true});
-}
-
-
-async function zipDb(){
-  console.log("Zipping the db");
-}
+const stagedData = resolve('.packaging/data');
 
 export default {
   packagerConfig: {
     name: 'Remed',
     icon: 'assets/logo',
-    // asar : true,
-    asar: {
-      unpack: "**/node_modules/@libsql/**"
-    },
-    // TODO: include sqlite3 binary
-    extraResource: ['progress.html', 'data/', 'bin', 'backend', 'frontend', `node_modules/@libsql/${LIBSQL_FOLDER}`, ],
+    asar: true,
+    extraResource: ['progress.html', 'bin', 'backend', 'frontend', stagedData, 'scripts/runtime-check.cjs'],
     // osxSign: true,
   },
   hooks: {
-    async postPackage() {
-      
-      try {
-        await copyNativeDeps();
-        // await CopyPublicFolder();
-      } catch (error) {
-        console.error('Error copying files:', error);
+    async prePackage(_config, platform, arch) {
+      if (platform !== process.platform || arch !== process.arch) {
+        throw new Error(`Build on the target OS and architecture (${platform}/${arch}) so npm installs the correct native dependencies.`);
       }
-    }
+      for (const file of ['backend/app.cjs', 'backend/docx-javascript-worker.cjs', 'backend/package-lock.json', 'frontend/index.html', 'data/db.7z']) {
+        if (!await pathExists(file)) throw new Error(`Missing build input: ${file}`);
+      }
+      execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['ci', '--omit=dev', '--include=optional', '--no-audit', '--no-fund'], {
+        cwd: resolve('backend'),
+        stdio: 'inherit',
+        shell: process.platform === 'win32',
+      });
+      await emptyDir(stagedData);
+      await copy('data/db.7z', join(stagedData, 'db.7z'));
+    },
   },
   makers: [
     new MakerSquirrel({name: "Remed", authors : "SARL DEVLOG", setupIcon : "assets/logo.ico", iconUrl : "https://raw.githubusercontent.com/abdoufma/remed-app-vite/refs/heads/with-workers/assets/logo.ico"}),

@@ -1,0 +1,14 @@
+{
+  "name": "remed-backend-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runtime dependencies for the Remed Electron backend.",
+  "main": "app.cjs",
+  "dependencies": {
+    "@jitl/quickjs-singlefile-mjs-release-sync": "0.32.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@superdoc/sdk": "2.12.0",
+    "libsql": "0.5.29",
+    "sharp": "0.35.4"
+  }
+}
