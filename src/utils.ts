@@ -9,6 +9,11 @@ import { spawn } from "child_process";
 let appDir : string;
 
 try {
+  const userDataOverride = app.commandLine.getSwitchValue('user-data-dir');
+  if (userDataOverride) {
+    mkdirSync(userDataOverride, { recursive: true });
+    app.setPath('userData', userDataOverride);
+  }
   // appDir = join(__dirname, '../..');
   appDir = app.isPackaged ? app.getPath('userData') : join(__dirname, '../..');
 } catch (error) {
@@ -80,12 +85,13 @@ export const logInfo = async (...args : unknown[]) => {
 function extractFile(archivePath: string, destination: string) {
   return new Promise<number>((resolve, reject) => {
     //TODO: bundle 7z binary with app
-    const platformFolder = process.platform === "darwin" ? "darwin/7zz" : "win32/7za.exe"
-    const binaryPath = join(resourcesPath, "bin", platformFolder);
+    const platformExecutable = process.platform === "darwin" ? "darwin/7zz" : "win32/7za.exe"
+    const binaryPath = join(resourcesPath, "bin", platformExecutable);
     const sevenZip = spawn(binaryPath, ["x", archivePath, `-o${destination}`]);
-    
-    sevenZip.stdout.on("data", (chunk) => logDebug(chunk))
-    sevenZip.stderr.on("data", (chunk) => logError(chunk))
+    sevenZip.on('error', reject);
+
+    sevenZip.stdout.on("data", logDebug);
+    sevenZip.stderr.on("data", logError);
 
     sevenZip.on("close", (code) => {
       if (code === 0) {
@@ -109,8 +115,9 @@ export async function extractDBtoUserDir() {
       await extractFile(dbArchivePath, databaseDir);
       logDebug("Extracted in", (performance.now() - start).toFixed(2), "ms");
     } else {
-      logWarning('Database Archive not found at', dbArchivePath);
+      throw new Error(`Database archive not found at ${dbArchivePath}`);
     }
+    if (!pathExistsSync(dbPath)) throw new Error(`Database archive did not contain remed.db`);
   }else logInfo('Database path:', dbPath, "exists. Skipping extraction.");
 }
 

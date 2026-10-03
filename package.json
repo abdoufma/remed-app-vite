@@ -1,18 +1,20 @@
 {
   "name": "remed-app-vite",
   "productName": "Remed",
-  "version": "1.0.6",
+  "version": "1.0.7-dev",
   "description": "Solution de gestion de cabinets médicaux.",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
     "rebuild": "electron-rebuild -f -w better-sqlite3 --target=35.0.0",
     "package": "electron-forge package",
+    "check:package": "node scripts/check-package.cjs",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "clean": "rm -rf out .vite",
-    "clean:back": "rm -rf backend/*",
+    "copy:back": "cp -r /Users/abdou/Downloads/tmp/remed_clean2/backend/dist/* backend/",
+    "clean:back": "rm -rf backend/*.{js,cjs,wasm}",
     "clean:front": "rm -rf frontend/*",
     "clean:deep": "rm -rf out .vite node_modules"
   },
