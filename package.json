@@ -14,7 +14,7 @@
     "lint": "eslint --ext .ts,.tsx .",
     "clean": "rm -rf out .vite",
     "copy:back": "cp -r /Users/abdou/Downloads/tmp/remed_clean2/backend/dist/* backend/",
-    "clean:back": "rm -rf backend/*.{js,cjs}",
+    "clean:back": "rm -rf backend/*.{js,cjs,wasm}",
     "clean:front": "rm -rf frontend/*",
     "clean:deep": "rm -rf out .vite node_modules"
   },

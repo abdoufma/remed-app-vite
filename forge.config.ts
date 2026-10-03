@@ -17,7 +17,7 @@ export default {
     name: 'Remed',
     icon: 'assets/logo',
     asar: true,
-    extraResource: ['progress.html', 'bin', 'backend', 'frontend', stagedData, 'scripts/runtime-check.cjs'],
+    extraResource: ['progress.html', 'assets', 'bin', 'backend', 'frontend', stagedData, 'scripts/runtime-check.cjs'],
     // osxSign: true,
   },
   hooks: {

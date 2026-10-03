@@ -81,22 +81,27 @@ async function launchServerProcess(){
 // serverProcess.postMessage("ping");
 // serverProcess.postMessage({ action: 'start' });
 
-function createProgressWindow() {
+async function createProgressWindow() {
   progressWindow = new BrowserWindow({
-    width: 400,
-    height: 200,
+    title: 'Starting Remed',
+    width: 440,
+    height: 230,
+    backgroundColor: '#eef2f7',
     modal: true,
     parent: mainWindow, // your main window
     show: false,
     resizable: false,
+    maximizable: false,
+    minimizable: false,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     }
   });
   const progressFile = app.isPackaged  ? join(process.resourcesPath, 'progress.html') : join(app.getAppPath(), 'progress.html');
-  progressWindow.loadFile(progressFile);
-  progressWindow.once('ready-to-show', () => progressWindow.show());
+  await progressWindow.loadFile(progressFile);
+  progressWindow.show();
 }
 
 
@@ -131,18 +136,19 @@ const createWindow = async () => {
 
 
     mainWindow.on('page-title-updated', (e) => e.preventDefault());
-    createProgressWindow();
+    await createProgressWindow();
 
     // await mainWindow.loadURL('https://google.com');
     // mainWindow.webContents.openDevTools();
-    updateProgress(10, "extracting database");
+    updateProgress(10, "Preparing local data...");
     await extractDBtoUserDir();
     // await wait(500);
-    updateProgress(50, "launching server process");
+    updateProgress(50, "Starting Remed services...");
     // await wait(1000);
     await launchServerProcess();
     // updateProgress(75)
-    updateProgress(100, "Launching Remed");
+    updateProgress(100, "Opening Remed...");
+    await wait(480);
     progressWindow.close();
     progressWindow = null;
 
